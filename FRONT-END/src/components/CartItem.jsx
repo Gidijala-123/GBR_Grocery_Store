@@ -1,13 +1,11 @@
 import { motion } from "framer-motion";
-import { FaTimes } from "react-icons/fa";
 
-const CartItem = ({ item, onDecrease, onIncrease, onRemove }) => {
+export default function CartItem({ item, onRemove, onUpdateQuantity }) {
   return (
     <motion.div
-      initial={{ opacity: 0, x: 50 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 50 }}
-      transition={{ duration: 0.3 }}
+      initial={{ x: 50, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      exit={{ x: 50, opacity: 0 }}
       className="border-b border-gray-700 pb-4 mb-4"
     >
       <div className="flex justify-between items-start">
@@ -21,23 +19,23 @@ const CartItem = ({ item, onDecrease, onIncrease, onRemove }) => {
           </div>
         </div>
         <button
-          onClick={() => onRemove(item.id)}
+          onClick={onRemove}
           className="text-gray-400 hover:text-orange-400 transition-colors duration-300"
         >
-          <FaTimes />
+          <i className="fas fa-times"></i>
         </button>
       </div>
       <div className="flex justify-between items-center mt-3">
         <div className="flex items-center border border-gray-600 rounded-md">
           <button
-            onClick={() => onDecrease(item.id)}
+            onClick={() => onUpdateQuantity(-1)}
             className="px-3 py-1 text-gray-300 hover:bg-gray-700 rounded-l-md transition-colors duration-300"
           >
             -
           </button>
           <span className="quantity px-4 text-white">{item.quantity}</span>
           <button
-            onClick={() => onIncrease(item.id)}
+            onClick={() => onUpdateQuantity(1)}
             className="px-3 py-1 text-gray-300 hover:bg-gray-700 rounded-r-md transition-colors duration-300"
           >
             +
@@ -49,6 +47,4 @@ const CartItem = ({ item, onDecrease, onIncrease, onRemove }) => {
       </div>
     </motion.div>
   );
-};
-
-export default CartItem;
+}

@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trocery - Online Grocery Store</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <style>
+        :root {
+            --primary: #ff7b25;
+            --primary-dark: #e64a19;
+            --primary-light: #ff9e4f;
+            --secondary: #ffab40;
+            --dark: #2c3e50;
+            --light: #f5f5f5;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #2c3e50 0%, #1a1a1a 100%);
+            color: var(--light);
+            min-height: 100vh;
+        }
+        
+        .navbar-gradient {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            box-shadow: 0 4px 20px rgba(230, 74, 25, 0.3);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 123, 37, 0.4);
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(230, 74, 25, 0.5);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--secondary) 0%, #ffc46b 100%);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 171, 64, 0.4);
+        }
+        
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #ff8f00 0%, var(--secondary) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 143, 0, 0.5);
+        }
+        
+        .product-card {
+            background: rgba(44, 62, 80, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .product-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 123, 37, 0.3);
+        }
+        
+        .sidebar {
+            background: rgba(44, 62, 80, 0.9);
+            backdrop-filter: blur(5px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .cart-sidebar {
+            background: rgba(44, 62, 80, 0.95);
+            backdrop-filter: blur(10px);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+        
+        .cart-hidden {
+            transform: translateX(100%);
+        }
+        
+        .cart-visible {
+            transform: translateX(0);
+        }
+        
+        .category-sidebar {
+            height: calc(100vh - 4rem);
+            overflow-y: auto;
+            position: sticky;
+            top: 4rem;
+        }
+        
+        @media (max-width: 768px) {
+            .category-sidebar {
+                position: fixed;
+                z-index: 40;
+                transform: translateX(-100%);
+                transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            }
+            .sidebar-visible {
+                transform: translateX(0);
+            }
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: rgba(0,0,0,0.7);
+                z-index: 30;
+                backdrop-filter: blur(3px);
+            }
+        }
+        
+        .price-badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .cart-item-enter {
+            animation: slideInRight 0.3s forwards;
+        }
+        
+        .cart-item-exit {
+            animation: slideOutRight 0.3s forwards;
+        }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(50px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(50px); opacity: 0; }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse-animation {
+            animation: pulse 0.5s ease;
+        }
+        
+        .bounce-animation {
+            animation: bounce 0.5s ease;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .rotate-animation {
+            animation: rotate 0.5s ease;
+        }
+        
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .fly-to-cart {
+            position: fixed;
+            z-index: 100;
+            animation: flyToCart 1s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards;
+            pointer-events: none;
+        }
+        
+        @keyframes flyToCart {
+            0% {
+                transform: scale(1) translate(0, 0);
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(0.2) translate(var(--end-x), var(--end-y));
+                opacity: 0;
+            }
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transform: translateX(200%);
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.7);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+        }
+        
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Notification -->
+    <div id="notification" class="notification hidden">
+        <div class="flex items-center">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span id="notification-message">Item added to cart!</span>
+        </div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar-gradient py-4 px-6 flex justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center space-x-4">
+            <button id="mobile-menu-button" class="text-white md:hidden">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+            <h1 class="text-2xl font-bold text-white animate__animated animate__fadeIn">Trocery</h1>
+        </div>
+        <div class="hidden md:flex items-center space-x-6">
+            <a href="#" class="text-white hover:text-orange-200 transition-colors duration-300">Shop</a>
+            <a href="#" class="text-white hover:text-orange-200 transition-colors duration-300">Vegetables & Fruits</a>
+            <a href="#" class="text-white hover:text-orange-200 transition-colors duration-300">Upgrade to pro</a>
+            <a href="#" class="text-white hover:text-orange-200 transition-colors duration-300">Contact Us</a>
+            <button id="cart-toggle" class="relative p-2 text-white hover:text-orange-200 transition-colors duration-300">
+                <i class="fas fa-shopping-cart text-xl"></i>
+                <span id="cart-count" class="price-badge hidden">0</span>
+            </button>
+        </div>
+        <div class="flex md:hidden items-center">
+            <button id="mobile-cart-button" class="relative p-2 text-white">
+                <i class="fas fa-shopping-cart text-xl"></i>
+                <span id="mobile-cart-count" class="price-badge hidden">0</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+    <div class="flex">
+        <!-- Sidebar -->
+        <div id="category-sidebar" class="category-sidebar w-64 sidebar p-6">
+            <h2 class="text-lg font-semibold mb-6 text-orange-400 animate__animated animate__fadeIn">Category</h2>
+            <ul class="space-y-4">
+                <li class="category-item flex items-center text-gray-300 hover:text-orange-400 cursor-pointer p-3 rounded-lg hover:bg-gray-700 transition-all duration-300" data-category="vegetables">
+                    <i class="fas fa-carrot mr-3 text-orange-400"></i> Vegetables & Fruits
+                </li>
+                <li class="category-item flex items-center text-gray-300 hover:text-orange-400 cursor-pointer p-3 rounded-lg hover:bg-gray-700 transition-all duration-300" data-category="beverages">
+                    <i class="fas fa-wine-bottle mr-3 text-orange-300"></i> Beverages
+                </li>
+                <li class="category-item flex items-center text-gray-300 hover:text-orange-400 cursor-pointer p-3 rounded-lg hover:bg-gray-700 transition-all duration-300" data-category="dairy">
+                    <i class="fas fa-cheese mr-3 text-yellow-300"></i> Dairy Products
+                </li>
+                <li class="category-item flex items-center text-gray-300 hover:text-orange-400 cursor-pointer p-3 rounded-lg hover:bg-gray-700 transition-all duration-300" data-category="grains">
+                    <i class="fas fa-bread-slice mr-3 text-amber-400"></i> FoodGrains & Oil
+                </li>
+                <li class="category-item flex items-center text-gray-300 hover:text-orange-400 cursor-pointer p-3 rounded-lg hover:bg-gray-700 transition-all duration-300" data-category="personal">
+                    <i class="fas fa-soap mr-3 text-blue-300"></i> Personal Care
+                </li>
+                <li class="category-item flex items-center text-gray-300 hover:text-orange-400 cursor-pointer p-3 rounded-lg hover:bg-gray-700 transition-all duration-300" data-category="pet">
+                    <i class="fas fa-paw mr-3 text-red-300"></i> Pet Care
+                </li>
+            </ul>
+
+            <h2 class="text-lg font-semibold mt-10 mb-6 text-orange-400">Quick Links</h2>
+            <ul class="space-y-4">
+                <li class="flex items-center text-gray-300 hover:text-orange-400 cursor-pointer p-3 rounded-lg hover:bg-gray-700 transition-all duration-300">
+                    <i class="fas fa-home mr-3 text-orange-400"></i> Home
+                </li>
+                <li class="flex items-center text-gray-300 hover:text-orange-400 cursor-pointer p-3 rounded-lg hover:bg-gray-700 transition-all duration-300">
+                    <i class="fas fa-fire mr-3 text-red-400"></i> Today's Deals
+                </li>
+                <li class="flex items-center text-gray-300 hover:text-orange-400 cursor-pointer p-3 rounded-lg hover:bg-gray-700 transition-all duration-300">
+                    <i class="fas fa-crown mr-3 text-yellow-400"></i> Upgrade to pro
+                </li>
+                <li class="flex items-center text-gray-300 hover:text-orange-400 cursor-pointer p-3 rounded-lg hover:bg-gray-700 transition-all duration-300">
+                    <i class="fas fa-envelope mr-3 text-blue-400"></i> Contact Us
+                </li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 p-4 md:p-8">
+            <div class="flex justify-between items-center mb-8">
+                <h2 id="category-title" class="text-2xl font-bold text-orange-400 animate__animated animate__fadeIn">Featured Products</h2>
+                <div class="relative">
+                    <select class="appearance-none bg-gray-700 border border-gray-600 rounded-md py-2 pl-3 pr-8 text-gray-300 leading-tight focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
+                        <option class="bg-gray-800">Sort by: Featured</option>
+                        <option class="bg-gray-800">Price: Low to High</option>
+                        <option class="bg-gray-800">Price: High to Low</option>
+                        <option class="bg-gray-800">Customer Rating</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-orange-400">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="products-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- Products will be loaded here dynamically -->
+            </div>
+        </div>
+
+        <!-- Shopping Cart Sidebar -->
+        <div id="cart-sidebar" class="fixed top-0 right-0 h-full w-full sm:w-96 cart-sidebar cart-hidden z-50">
+            <div class="p-6 h-full flex flex-col">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-orange-400 animate__animated animate__fadeIn">Your Shopping Cart</h2>
+                    <button id="cart-close" class="text-gray-400 hover:text-orange-400 transition-colors duration-300">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <div id="cart-items" class="flex-1 overflow-y-auto">
+                    <!-- Cart items will be added here dynamically -->
+                    <div class="text-center py-12 animate__animated animate__fadeIn">
+                        <i class="fas fa-shopping-cart text-5xl text-gray-600 mb-4"></i>
+                        <p class="text-gray-400 mb-4">Your cart is empty</p>
+                        <button class="btn-primary px-6 py-2 rounded-md" onclick="closeCart()">
+                            Continue Shopping
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="border-t border-gray-700 pt-4">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-gray-400">Subtotal</span>
+                        <span id="cart-subtotal" class="font-semibold text-orange-400">£0.00</span>
+                    </div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-gray-400">Delivery</span>
+                        <span class="font-semibold text-green-400">FREE</span>
+                    </div>
+                    <div class="flex justify-between mb-4 text-lg">
+                        <span class="font-semibold text-white">Total</span>
+                        <span id="cart-total" class="font-bold text-orange-400">£0.00</span>
+                    </div>
+                    <button class="btn-primary w-full py-3 rounded-md mb-3">
+                        Proceed to Checkout
+                    </button>
+                    <button class="w-full bg-gray-700 text-orange-400 border border-orange-400 py-3 rounded-md hover:bg-gray-600 transition-colors duration-300">
+                        <i class="fas fa-shopping-cart mr-2"></i> View Cart
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Product data
+        const products = {
+            vegetables: [
+                { id: 1, name: 'Organic Grapes', price: 4.99, originalPrice: 6.99, category: 'vegetables', image: '🍇', rating: 4.5 },
+                { id: 2, name: 'Fresh Carrots', price: 1.49, originalPrice: 1.99, category: 'vegetables', image: '🥕', rating: 4.2 },
+                { id: 3, name: 'Organic Tomatoes', price: 2.99, originalPrice: 3.49, category: 'vegetables', image: '🍅', rating: 4.7 },
+                { id: 4, name: 'Cucumbers', price: 0.99, originalPrice: 1.29, category: 'vegetables', image: '🥒', rating: 4.0 },
+                { id: 5, name: 'Bell Peppers', price: 1.79, originalPrice: 2.19, category: 'vegetables', image: '🫑', rating: 4.3 },
+                { id: 6, name: 'Organic Apples', price: 3.49, originalPrice: 3.99, category: 'vegetables', image: '🍏', rating: 4.8 }
+            ],
+            beverages: [
+                { id: 7, name: 'Mineral Water', price: 0.79, originalPrice: 0.99, category: 'beverages', image: '💧', rating: 3.9 },
+                { id: 8, name: 'Orange Juice', price: 2.49, originalPrice: 2.99, category: 'beverages', image: '🧃', rating: 4.5 },
+                { id: 9, name: 'Craft Beer', price: 3.99, originalPrice: 4.50, category: 'beverages', image: '🍺', rating: 4.7 },
+                { id: 10, name: 'Green Tea', price: 3.29, originalPrice: 3.99, category: 'beverages', image: '🍵', rating: 4.4 },
+                { id: 11, name: 'Cola Drink', price: 1.29, originalPrice: 1.50, category: 'beverages', image: '🥤', rating: 4.1 },
+                { id: 12, name: 'Sparkling Water', price: 0.99, originalPrice: 1.20, category: 'beverages', image: '🧊', rating: 4.0 }
+            ],
+            dairy: [
+                { id: 13, name: 'Milk 1L', price: 1.09, originalPrice: 1.29, category: 'dairy', image: '🥛', rating: 4.2 },
+                { id: 14, name: 'Cheddar Cheese', price: 3.49, originalPrice: 3.99, category: 'dairy', image: '🧀', rating: 4.6 },
+                { id: 15, name: 'Greek Yogurt', price: 2.19, originalPrice: 2.49, category: 'dairy', image: '🍶', rating: 4.4 },
+                { id: 16, name: 'Butter 250g', price: 1.99, originalPrice: 2.29, category: 'dairy', image: '🧈', rating: 4.3 },
+                { id: 17, name: 'Organic Eggs', price: 2.79, originalPrice: 3.19, category: 'dairy', image: '🥚', rating: 4.7 },
+                { id: 18, name: 'Cream Cheese', price: 1.89, originalPrice: 2.10, category: 'dairy', image: '🧀', rating: 4.5 }
+            ],
+            grains: [
+                { id: 19, name: 'Edible Oil Ghee', price: 45.00, originalPrice: 60.00, category: 'grains', image: '🫒', rating: 4.8 },
+                { id: 20, name: 'Dry Fruits', price: 20.00, originalPrice: 22.00, category: 'grains', image: '🥜', rating: 4.9 },
+                { id: 21, name: 'Whole Wheat Flour', price: 2.49, originalPrice: 2.99, category: 'grains', image: '🌾', rating: 4.3 },
+                { id: 22, name: 'Basmati Rice', price: 4.99, originalPrice: 5.49, category: 'grains', image: '🍚', rating: 4.7 },
+                { id: 23, name: 'Organic Quinoa', price: 5.99, originalPrice: 6.50, category: 'grains', image: '🌾', rating: 4.6 },
+                { id: 24, name: 'Whole Grain Pasta', price: 2.19, originalPrice: 2.49, category: 'grains', image: '🍝', rating: 4.4 }
+            ],
+            personal: [
+                { id: 25, name: 'Shampoo', price: 4.99, originalPrice: 5.99, category: 'personal', image: '🧴', rating: 4.5 },
+                { id: 26, name: 'Toothpaste', price: 2.49, originalPrice: 2.99, category: 'personal', image: '🪥', rating: 4.3 },
+                { id: 27, name: 'Hand Soap', price: 1.99, originalPrice: 2.29, category: 'personal', image: '🧼', rating: 4.2 },
+                { id: 28, name: 'Face Cream', price: 8.99, originalPrice: 9.99, category: 'personal', image: '🧴', rating: 4.7 },
+                { id: 29, name: 'Razor Blades', price: 5.49, originalPrice: 6.00, category: 'personal', image: '🪒', rating: 4.4 },
+                { id: 30, name: 'Deodorant', price: 3.29, originalPrice: 3.79, category: 'personal', image: '🧴', rating: 4.6 }
+            ],
+            pet: [
+                { id: 31, name: 'Dog Food', price: 12.99, originalPrice: 14.99, category: 'pet', image: '🐕', rating: 4.8 },
+                { id: 32, name: 'Cat Litter', price: 8.49, originalPrice: 9.99, category: 'pet', image: '🐈', rating: 4.5 },
+                { id: 33, name: 'Pet Toy', price: 5.99, originalPrice: 6.50, category: 'pet', image: '🎾', rating: 4.7 },
+                { id: 34, name: 'Fish Food', price: 3.49, originalPrice: 3.99, category: 'pet', image: '🐠', rating: 4.3 },
+                { id: 35, name: 'Bird Seed', price: 4.29, originalPrice: 4.99, category: 'pet', image: '🦜', rating: 4.6 },
+                { id: 36, name: 'Pet Shampoo', price: 6.99, originalPrice: 7.50, category: 'pet', image: '🛁', rating: 4.4 }
+            ]
+        };
+
+        // Cart functionality
+        const cart = [];
+        const cartToggle = document.getElementById('cart-toggle');
+        const mobileCartButton = document.getElementById('mobile-cart-button');
+        const cartClose = document.getElementById('cart-close');
+        const cartSidebar = document.getElementById('cart-sidebar');
+        const cartItemsContainer = document.getElementById('cart-items');
+        const cartCount = document.getElementById('cart-count');
+        const mobileCartCount = document.getElementById('mobile-cart-count');
+        const cartSubtotal = document.getElementById('cart-subtotal');
+        const cartTotal = document.getElementById('cart-total');
+        const productsContainer = document.getElementById('products-container');
+        const categoryTitle = document.getElementById('category-title');
+        const categoryItems = document.querySelectorAll('.category-item');
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const categorySidebar = document.getElementById('category-sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        const notification = document.getElementById('notification');
+        const notificationMessage = document.getElementById('notification-message');
+
+        // Initialize with featured products (shuffle and take 12)
+        displayProducts(shuffleArray(Object.values(products).flat()).slice(0, 12));
+
+        // Toggle cart visibility
+        cartToggle.addEventListener('click', openCart);
+        mobileCartButton.addEventListener('click', openCart);
+        cartClose.addEventListener('click', closeCart);
+
+        function openCart() {
+            cartSidebar.classList.remove('cart-hidden');
+            cartSidebar.classList.add('cart-visible');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeCart() {
+            cartSidebar.classList.remove('cart-visible');
+            cartSidebar.classList.add('cart-hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Mobile menu toggle
+        mobileMenuButton.addEventListener('click', () => {
+            categorySidebar.classList.toggle('sidebar-visible');
+            sidebarOverlay.style.display = categorySidebar.classList.contains('sidebar-visible') ? 'block' : 'none';
+        });
+
+        sidebarOverlay.addEventListener('click', () => {
+            categorySidebar.classList.remove('sidebar-visible');
+            sidebarOverlay.style.display = 'none';
+        });
+
+        // Category selection
+        categoryItems.forEach(item => {
+            item.addEventListener('click', function() {
+                // Add click animation
+                this.classList.add('animate__animated', 'animate__pulse');
+                setTimeout(() => {
+                    this.classList.remove('animate__animated', 'animate__pulse');
+                }, 500);
+                
+                const category = this.getAttribute('data-category');
+                displayCategoryProducts(category);
+                
+                // Close mobile sidebar if open
+                categorySidebar.classList.remove('sidebar-visible');
+                sidebarOverlay.style.display = 'none';
+            });
+        });
+
+        function displayCategoryProducts(category) {
+            const categoryProducts = products[category];
+            if (categoryProducts) {
+                displayProducts(categoryProducts);
+                
+                // Update category title with animation
+                const categoryName = document.querySelector(`.category-item[data-category="${category}"]`).textContent.trim();
+                categoryTitle.classList.add('animate__animated', 'animate__rubberBand');
+                setTimeout(() => {
+                    categoryTitle.classList.remove('animate__animated', 'animate__rubberBand');
+                }, 1000);
+                categoryTitle.textContent = categoryName;
+            }
+        }
+
+        function displayProducts(productsToDisplay) {
+            productsContainer.innerHTML = '';
+            
+            if (productsToDisplay.length === 0) {
+                productsContainer.innerHTML = `
+                    <div class="col-span-full text-center py-12 animate__animated animate__fadeIn">
+                        <i class="fas fa-box-open text-5xl text-gray-600 mb-4"></i>
+                        <p class="text-gray-400">No products found in this category</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            productsToDisplay.forEach(product => {
+                const productCard = document.createElement('div');
+                productCard.className = 'product-card rounded-lg p-6 animate__animated animate__fadeIn';
+                productCard.innerHTML = `
+                    <div class="relative">
+                        <div class="text-5xl mb-4 text-center">${product.image}</div>
+                        ${product.originalPrice ? `<span class="absolute top-0 left-0 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded">SAVE ${Math.round((1 - product.price/product.originalPrice)*100)}%</span>` : ''}
+                    </div>
+                    <h3 class="text-lg font-semibold mb-2 text-white">${product.name}</h3>
+                    <div class="flex items-center mb-3">
+                        ${renderRatingStars(product.rating)}
+                    </div>
+                    <div class="flex items-center mb-4">
+                        ${product.originalPrice ? `<span class="text-gray-400 line-through mr-2">£${product.originalPrice.toFixed(2)}</span>` : ''}
+                        <span class="text-orange-400 font-bold text-xl">£${product.price.toFixed(2)}</span>
+                    </div>
+                    <button class="add-to-cart btn-primary w-full py-2 rounded-md relative overflow-hidden" 
+                            data-id="${product.id}" 
+                            data-name="${product.name}" 
+                            data-price="${product.price}"
+                            data-image="${product.image}">
+                        <i class="fas fa-cart-plus mr-2"></i> Add to Cart
+                    </button>
+                `;
+                productsContainer.appendChild(productCard);
+            });
+            
+            // Add event listeners to new add-to-cart buttons
+            document.querySelectorAll('.add-to-cart').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    // Add ripple effect
+                    const ripple = document.createElement('span');
+                    ripple.classList.add('ripple');
+                    this.appendChild(ripple);
+                    
+                    // Get position of ripple
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    ripple.style.left = `${x}px`;
+                    ripple.style.top = `${y}px`;
+                    
+                    // Remove ripple after animation
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 600);
+                    
+                    // Add click animation
+                    this.classList.add('animate__animated', 'animate__rubberBand');
+                    setTimeout(() => {
+                        this.classList.remove('animate__animated', 'animate__rubberBand');
+                    }, 1000);
+                    
+                    const id = this.getAttribute('data-id');
+                    const name = this.getAttribute('data-name');
+                    const price = parseFloat(this.getAttribute('data-price'));
+                    const image = this.getAttribute('data-image');
+                    
+                    // Create flying item animation
+                    const productImage = this.closest('.product-card').querySelector('.text-5xl');
+                    const productImageClone = productImage.cloneNode(true);
+                    productImageClone.classList.add('fly-to-cart');
+                    
+                    // Get positions for animation
+                    const productRect = productImage.getBoundingClientRect();
+                    const cartButtonRect = cartToggle.getBoundingClientRect();
+                    
+                    // Set animation end position
+                    productImageClone.style.setProperty('--end-x', `${cartButtonRect.left - productRect.left}px`);
+                    productImageClone.style.setProperty('--end-y', `${cartButtonRect.top - productRect.top}px`);
+                    
+                    // Add to DOM and start animation
+                    document.body.appendChild(productImageClone);
+                    
+                    // Remove after animation
+                    setTimeout(() => {
+                        productImageClone.remove();
+                    }, 1000);
+                    
+                    addToCart(id, name, price, image);
+                    
+                    // Animate cart icon
+                    cartCount.classList.add('bounce-animation');
+                    mobileCartCount.classList.add('bounce-animation');
+                    setTimeout(() => {
+                        cartCount.classList.remove('bounce-animation');
+                        mobileCartCount.classList.remove('bounce-animation');
+                    }, 1000);
+                    
+                    // Show notification
+                    showNotification(`${name} added to cart!`);
+                });
+            });
+        }
+
+        function renderRatingStars(rating) {
+            let stars = '';
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating % 1 >= 0.5;
+            
+            for (let i = 0; i < fullStars; i++) {
+                stars += '<i class="fas fa-star text-yellow-400"></i>';
+            }
+            
+            if (hasHalfStar) {
+                stars += '<i class="fas fa-star-half-alt text-yellow-400"></i>';
+            }
+            
+            const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+            for (let i = 0; i < emptyStars; i++) {
+                stars += '<i class="far fa-star text-yellow-400"></i>';
+            }
+            
+            return stars;
+        }
+
+        function addToCart(id, name, price, image) {
+            // Check if item already exists in cart
+            const existingItem = cart.find(item => item.id === id);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({
+                    id,
+                    name,
+                    price,
+                    image,
+                    quantity: 1
+                });
+            }
+            
+            updateCart();
+        }
+
+        function removeItemFromCart(id) {
+            const itemIndex = cart.findIndex(item => item.id === id);
+            if (itemIndex !== -1) {
+                cart.splice(itemIndex, 1);
+                updateCart();
+            }
+        }
+
+        function updateItemQuantity(id, change) {
+            const item = cart.find(item => item.id === id);
+            if (item) {
+                item.quantity += change;
+                
+                if (item.quantity <= 0) {
+                    removeItemFromCart(id);
+                } else {
+                    updateCart();
+                }
+            }
+        }
+
+        // Update cart display
+        function updateCart() {
+            // Update cart count
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            cartCount.textContent = totalItems;
+            mobileCartCount.textContent = totalItems;
+            totalItems > 0 ? cartCount.classList.remove('hidden') : cartCount.classList.add('hidden');
+            totalItems > 0 ? mobileCartCount.classList.remove('hidden') : mobileCartCount.classList.add('hidden');
+            
+            // Update cart items
+            if (cart.length === 0) {
+                cartItemsContainer.innerHTML = `
+                    <div class="text-center py-12 animate__animated animate__fadeIn">
+                        <i class="fas fa-shopping-cart text-5xl text-gray-600 mb-4"></i>
+                        <p class="text-gray-400 mb-4">Your cart is empty</p>
+                        <button class="btn-primary px-6 py-2 rounded-md" onclick="closeCart()">
+                            Continue Shopping
+                        </button>
+                    </div>
+                `;
+            } else {
+                let itemsHTML = '';
+                let subtotal = 0;
+                
+                cart.forEach(item => {
+                    const itemTotal = item.price * item.quantity;
+                    subtotal += itemTotal;
+                    
+                    itemsHTML += `
+                        <div class="cart-item-enter border-b border-gray-700 pb-4 mb-4" data-id="${item.id}">
+                            <div class="flex justify-between items-start">
+                                <div class="flex items-center">
+                                    <div class="text-2xl mr-3">${item.image}</div>
+                                    <div class="flex-1">
+                                        <h3 class="font-medium text-white">${item.name}</h3>
+                                        <span class="text-orange-400 font-semibold">£${item.price.toFixed(2)}</span>
+                                    </div>
+                                </div>
+                                <button class="remove-item text-gray-400 hover:text-orange-400 transition-colors duration-300">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="flex justify-between items-center mt-3">
+                                <div class="flex items-center border border-gray-600 rounded-md">
+                                    <button class="decrease-quantity px-3 py-1 text-gray-300 hover:bg-gray-700 rounded-l-md transition-colors duration-300">
+                                        -
+                                    </button>
+                                    <span class="quantity px-4 text-white">${item.quantity}</span>
+                                    <button class="increase-quantity px-3 py-1 text-gray-300 hover:bg-gray-700 rounded-r-md transition-colors duration-300">
+                                        +
+                                    </button>
+                                </div>
+                                <span class="font-semibold text-orange-400">£${itemTotal.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                cartItemsContainer.innerHTML = itemsHTML;
+                cartSubtotal.textContent = `£${subtotal.toFixed(2)}`;
+                cartTotal.textContent = `£${subtotal.toFixed(2)}`;
+                
+                // Add event listeners to dynamically created buttons
+                document.querySelectorAll('.remove-item').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const itemId = this.closest('[data-id]').getAttribute('data-id');
+                        const cartItem = this.closest('.cart-item-enter');
+                        cartItem.classList.remove('cart-item-enter');
+                        cartItem.classList.add('cart-item-exit');
+                        
+                        setTimeout(() => {
+                            removeItemFromCart(itemId);
+                        }, 300);
+                    });
+                });
+                
+                document.querySelectorAll('.increase-quantity').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const itemId = this.closest('[data-id]').getAttribute('data-id');
+                        const quantityElement = this.parentElement.querySelector('.quantity');
+                        quantityElement.classList.add('animate__animated', 'animate__bounceIn');
+                        setTimeout(() => {
+                            quantityElement.classList.remove('animate__animated', 'animate__bounceIn');
+                        }, 300);
+                        updateItemQuantity(itemId, 1);
+                    });
+                });
+                
+                document.querySelectorAll('.decrease-quantity').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const itemId = this.closest('[data-id]').getAttribute('data-id');
+                        const quantityElement = this.parentElement.querySelector('.quantity');
+                        quantityElement.classList.add('animate__animated', 'animate__bounceIn');
+                        setTimeout(() => {
+                            quantityElement.classList.remove('animate__animated', 'animate__bounceIn');
+                        }, 300);
+                        updateItemQuantity(itemId, -1);
+                    });
+                });
+            }
+        }
+
+        function showNotification(message) {
+            notificationMessage.textContent = message;
+            notification.classList.remove('hidden');
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    notification.classList.add('hidden');
+                }, 400);
+            }, 3000);
+        }
+
+        // Helper function to shuffle array
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
+        // Add ripple effect to all buttons
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('click', function(e) {
+                // Skip if button already has ripple (like add-to-cart buttons)
+                if (this.querySelector('.ripple')) return;
+                
+                const ripple = document.createElement('span');
+                ripple.classList.add('ripple');
+                this.appendChild(ripple);
+                
+                const rect = this.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                ripple.style.left = `${x}px`;
+                ripple.style.top = `${y}px`;
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            });
+        });
+
+        // Make cart sidebar draggable on mobile
+        let startX, startY;
+        let isDragging = false;
+
+        cartSidebar.addEventListener('touchstart', (e) => {
+            if (window.innerWidth <= 768) {
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+                isDragging = true;
+                cartSidebar.style.transition = 'none';
+            }
+        }, { passive: true });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            
+            const currentX = e.touches[0].clientX;
+            const diffX = currentX - startX;
+            
+            // Only allow dragging from right to left (closing)
+            if (diffX < 0) {
+                cartSidebar.style.transform = `translateX(${Math.min(0, diffX)}px)`;
+            }
+        }, { passive: true });
+
+        document.addEventListener('touchend', (e) => {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            const currentX = e.changedTouches[0].clientX;
+            const diffX = currentX - startX;
+            
+            cartSidebar.style.transition = 'transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1)';
+            
+            // If dragged more than 100px to left, close the cart
+            if (diffX < -100) {
+                closeCart();
+            } else {
+                cartSidebar.style.transform = 'translateX(0)';
+            }
+        }, { passive: true });
+    </script>
+</body>
+</html>

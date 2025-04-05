@@ -1,28 +1,24 @@
-import { FaCartPlus } from "react-icons/fa";
-import { useDispatch } from "react-redux";
-import { addItemToCart } from "../store/cartSlice";
 import { motion } from "framer-motion";
+import { FaCartPlus } from "react-icons/fa";
+import { addItem } from "../store/cartSlice";
+import { useDispatch } from "react-redux";
+import { useState } from "react";
 
-const ProductCard = ({ product }) => {
+export default function ProductCard({ product }) {
   const dispatch = useDispatch();
+  const [isAnimating, setIsAnimating] = useState(false);
 
   const handleAddToCart = () => {
-    dispatch(
-      addItemToCart({
-        id: product._id,
-        name: product.name,
-        price: product.price,
-        image: product.image,
-      })
-    );
+    dispatch(addItem(product));
+    setIsAnimating(true);
+    setTimeout(() => setIsAnimating(false), 1000);
   };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      className="product-card rounded-lg p-6 bg-gray-800 bg-opacity-70 backdrop-blur-md border border-gray-700"
       whileHover={{ y: -8, scale: 1.02 }}
-      className="product-card rounded-lg p-6"
+      transition={{ type: "spring", stiffness: 400, damping: 10 }}
     >
       <div className="relative">
         <div className="text-5xl mb-4 text-center">{product.image}</div>
@@ -34,6 +30,9 @@ const ProductCard = ({ product }) => {
         )}
       </div>
       <h3 className="text-lg font-semibold mb-2 text-white">{product.name}</h3>
+      <div className="flex items-center mb-3">
+        {renderRatingStars(product.rating)}
+      </div>
       <div className="flex items-center mb-4">
         {product.originalPrice && (
           <span className="text-gray-400 line-through mr-2">
@@ -45,14 +44,45 @@ const ProductCard = ({ product }) => {
         </span>
       </div>
       <motion.button
-        whileTap={{ scale: 0.95 }}
         onClick={handleAddToCart}
-        className="btn-primary w-full py-2 rounded-md flex items-center justify-center"
+        whileTap={{ scale: 0.95 }}
+        className="btn-primary w-full py-2 rounded-md relative overflow-hidden flex items-center justify-center"
       >
-        <FaCartPlus className="mr-2" /> Add to Cart
+        <motion.span
+          animate={isAnimating ? { scale: [1, 1.2, 1] } : {}}
+          transition={{ duration: 0.5 }}
+        >
+          <FaCartPlus className="mr-2" />
+          Add to Cart
+        </motion.span>
       </motion.button>
     </motion.div>
   );
-};
+}
 
-export default ProductCard;
+function renderRatingStars(rating) {
+  const stars = [];
+  const fullStars = Math.floor(rating);
+  const hasHalfStar = rating % 1 >= 0.5;
+
+  for (let i = 0; i < fullStars; i++) {
+    stars.push(
+      <i key={`full-${i}`} className="fas fa-star text-yellow-400"></i>
+    );
+  }
+
+  if (hasHalfStar) {
+    stars.push(
+      <i key="half" className="fas fa-star-half-alt text-yellow-400"></i>
+    );
+  }
+
+  const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+  for (let i = 0; i < emptyStars; i++) {
+    stars.push(
+      <i key={`empty-${i}`} className="far fa-star text-yellow-400"></i>
+    );
+  }
+
+  return stars;
+}

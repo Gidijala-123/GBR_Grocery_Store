@@ -1,58 +1,24 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchProducts } from "../store/productsSlice";
 import ProductCard from "../components/ProductCard";
-import { motion } from "framer-motion";
+import { setProducts } from "../store/productsSlice";
 
-const Home = () => {
+export default function Home() {
   const dispatch = useDispatch();
-  const {
-    items: products,
-    status,
-    error,
-  } = useSelector((state) => state.products);
+  const { featuredProducts } = useSelector((state) => state.products);
 
   useEffect(() => {
-    if (status === "idle") {
-      dispatch(fetchProducts());
-    }
-  }, [status, dispatch]);
-
-  let content;
-
-  if (status === "loading") {
-    content = (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
-      </div>
-    );
-  } else if (status === "succeeded") {
-    content = (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {products.slice(0, 12).map((product, index) => (
-          <motion.div
-            key={product._id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-          >
-            <ProductCard product={product} />
-          </motion.div>
-        ))}
-      </div>
-    );
-  } else if (status === "failed") {
-    content = (
-      <div className="text-center py-12 text-red-400">
-        <p>Error loading products: {error}</p>
-      </div>
-    );
-  }
+    // In a real app, you would fetch this from your API
+    const dummyProducts = [
+      // Same product data as before
+    ];
+    dispatch(setProducts(dummyProducts.flat()));
+  }, [dispatch]);
 
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
-        <h2 className="text-2xl font-bold text-orange-400 animate__animated animate__fadeIn">
+        <h2 className="text-2xl font-bold text-orange-400">
           Featured Products
         </h2>
         <div className="relative">
@@ -67,9 +33,12 @@ const Home = () => {
           </div>
         </div>
       </div>
-      {content}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {featuredProducts.map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </div>
     </div>
   );
-};
-
-export default Home;
+}

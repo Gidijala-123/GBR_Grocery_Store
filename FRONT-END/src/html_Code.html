@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trocery - Online Grocery Store</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <style>
+      .cart-sidebar {
+        transition: transform 0.3s ease-in-out;
+      }
+      .cart-hidden {
+        transform: translateX(100%);
+      }
+      .cart-visible {
+        transform: translateX(0);
+      }
+      .category-sidebar {
+        height: calc(100vh - 4rem); /* Subtract navbar height */
+        overflow-y: auto;
+        position: sticky;
+        top: 4rem; /* Navbar height */
+      }
+      .product-card {
+        transition: all 0.3s ease;
+      }
+      .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      }
+      @media (max-width: 768px) {
+        .category-sidebar {
+          position: fixed;
+          z-index: 40;
+          transform: translateX(-100%);
+          transition: transform 0.3s ease-in-out;
+        }
+        .sidebar-visible {
+          transform: translateX(0);
+        }
+        .sidebar-overlay {
+          display: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: rgba(0, 0, 0, 0.5);
+          z-index: 30;
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <!-- Navbar -->
+    <nav
+      class="bg-green-600 shadow-sm py-4 px-6 flex justify-between items-center sticky top-0 z-50"
+    >
+      <div class="flex items-center space-x-4">
+        <button id="mobile-menu-button" class="text-white md:hidden">
+          <i class="fas fa-bars text-xl"></i>
+        </button>
+        <h1 class="text-2xl font-bold text-white">Trocery</h1>
+      </div>
+      <div class="hidden md:flex items-center space-x-6">
+        <a href="#" class="text-white hover:text-yellow-200 transition-colors"
+          >Shop</a
+        >
+        <a href="#" class="text-white hover:text-yellow-200 transition-colors"
+          >Vegetables & Fruits</a
+        >
+        <a href="#" class="text-white hover:text-yellow-200 transition-colors"
+          >Upgrade to pro</a
+        >
+        <a href="#" class="text-white hover:text-yellow-200 transition-colors"
+          >Contact Us</a
+        >
+        <button
+          id="cart-toggle"
+          class="relative p-2 text-white hover:text-yellow-200 transition-colors"
+        >
+          <i class="fas fa-shopping-cart text-xl"></i>
+          <span
+            id="cart-count"
+            class="absolute -top-1 -right-1 bg-yellow-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden"
+            >0</span
+          >
+        </button>
+      </div>
+      <div class="flex md:hidden items-center">
+        <button id="mobile-cart-button" class="relative p-2 text-white">
+          <i class="fas fa-shopping-cart text-xl"></i>
+          <span
+            id="mobile-cart-count"
+            class="absolute -top-1 -right-1 bg-yellow-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden"
+            >0</span
+          >
+        </button>
+      </div>
+    </nav>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+    <div class="flex">
+      <!-- Sidebar -->
+      <div
+        id="category-sidebar"
+        class="category-sidebar w-64 bg-white shadow-sm p-6"
+      >
+        <h2 class="text-lg font-semibold mb-6 text-green-700">Category</h2>
+        <ul class="space-y-4">
+          <li
+            class="category-item flex items-center text-gray-700 hover:text-green-600 cursor-pointer p-2 rounded hover:bg-green-50 transition-colors"
+            data-category="vegetables"
+          >
+            <i class="fas fa-carrot mr-3 text-green-500"></i> Vegetables &
+            Fruits
+          </li>
+          <li
+            class="category-item flex items-center text-gray-700 hover:text-green-600 cursor-pointer p-2 rounded hover:bg-green-50 transition-colors"
+            data-category="beverages"
+          >
+            <i class="fas fa-wine-bottle mr-3 text-blue-500"></i> Beverages
+          </li>
+          <li
+            class="category-item flex items-center text-gray-700 hover:text-green-600 cursor-pointer p-2 rounded hover:bg-green-50 transition-colors"
+            data-category="dairy"
+          >
+            <i class="fas fa-cheese mr-3 text-yellow-500"></i> Dairy Products
+          </li>
+          <li
+            class="category-item flex items-center text-gray-700 hover:text-green-600 cursor-pointer p-2 rounded hover:bg-green-50 transition-colors"
+            data-category="grains"
+          >
+            <i class="fas fa-bread-slice mr-3 text-amber-700"></i> FoodGrains &
+            Oil
+          </li>
+          <li
+            class="category-item flex items-center text-gray-700 hover:text-green-600 cursor-pointer p-2 rounded hover:bg-green-50 transition-colors"
+            data-category="personal"
+          >
+            <i class="fas fa-soap mr-3 text-purple-500"></i> Personal Care
+          </li>
+          <li
+            class="category-item flex items-center text-gray-700 hover:text-green-600 cursor-pointer p-2 rounded hover:bg-green-50 transition-colors"
+            data-category="pet"
+          >
+            <i class="fas fa-paw mr-3 text-red-400"></i> Pet Care
+          </li>
+        </ul>
+
+        <h2 class="text-lg font-semibold mt-10 mb-6 text-green-700">
+          Quick Links
+        </h2>
+        <ul class="space-y-4">
+          <li
+            class="flex items-center text-gray-700 hover:text-green-600 cursor-pointer p-2 rounded hover:bg-green-50 transition-colors"
+          >
+            <i class="fas fa-home mr-3 text-green-500"></i> Home
+          </li>
+          <li
+            class="flex items-center text-gray-700 hover:text-green-600 cursor-pointer p-2 rounded hover:bg-green-50 transition-colors"
+          >
+            <i class="fas fa-fire mr-3 text-orange-500"></i> Today's Deals
+          </li>
+          <li
+            class="flex items-center text-gray-700 hover:text-green-600 cursor-pointer p-2 rounded hover:bg-green-50 transition-colors"
+          >
+            <i class="fas fa-crown mr-3 text-yellow-500"></i> Upgrade to pro
+          </li>
+          <li
+            class="flex items-center text-gray-700 hover:text-green-600 cursor-pointer p-2 rounded hover:bg-green-50 transition-colors"
+          >
+            <i class="fas fa-envelope mr-3 text-blue-400"></i> Contact Us
+          </li>
+        </ul>
+      </div>
+
+      <!-- Main Content -->
+      <div class="flex-1 p-4 md:p-8">
+        <div class="flex justify-between items-center mb-6">
+          <h2 id="category-title" class="text-2xl font-bold text-green-700">
+            Featured Products
+          </h2>
+          <div class="relative">
+            <select
+              class="appearance-none bg-white border border-gray-300 rounded-md py-2 pl-3 pr-8 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            >
+              <option>Sort by: Featured</option>
+              <option>Price: Low to High</option>
+              <option>Price: High to Low</option>
+              <option>Customer Rating</option>
+            </select>
+            <div
+              class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
+            >
+              <i class="fas fa-chevron-down"></i>
+            </div>
+          </div>
+        </div>
+
+        <div
+          id="products-container"
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+        >
+          <!-- Products will be loaded here dynamically -->
+        </div>
+      </div>
+
+      <!-- Shopping Cart Sidebar -->
+      <div
+        id="cart-sidebar"
+        class="fixed top-0 right-0 h-full w-full sm:w-96 bg-white shadow-lg cart-sidebar cart-hidden z-50"
+      >
+        <div class="p-6 h-full flex flex-col">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-green-700">Your Shopping Cart</h2>
+            <button
+              id="cart-close"
+              class="text-gray-500 hover:text-red-500 transition-colors"
+            >
+              <i class="fas fa-times text-xl"></i>
+            </button>
+          </div>
+
+          <div id="cart-items" class="flex-1 overflow-y-auto">
+            <!-- Cart items will be added here dynamically -->
+            <div class="text-center py-12">
+              <i class="fas fa-shopping-cart text-4xl text-gray-300 mb-4"></i>
+              <p class="text-gray-500">Your cart is empty</p>
+              <button
+                class="mt-4 px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                onclick="closeCart()"
+              >
+                Continue Shopping
+              </button>
+            </div>
+          </div>
+
+          <div class="border-t pt-4">
+            <div class="flex justify-between mb-2">
+              <span class="text-gray-600">Subtotal</span>
+              <span id="cart-subtotal" class="font-semibold">£0.00</span>
+            </div>
+            <div class="flex justify-between mb-2">
+              <span class="text-gray-600">Delivery</span>
+              <span class="font-semibold text-green-600">FREE</span>
+            </div>
+            <div class="flex justify-between mb-4 text-lg">
+              <span class="font-semibold">Total</span>
+              <span id="cart-total" class="font-bold">£0.00</span>
+            </div>
+            <button
+              class="w-full bg-green-600 text-white py-3 rounded-md hover:bg-green-700 transition-colors mb-2"
+            >
+              Proceed to Checkout
+            </button>
+            <button
+              class="w-full bg-white text-green-600 border border-green-600 py-3 rounded-md hover:bg-green-50 transition-colors"
+            >
+              <i class="fas fa-shopping-cart mr-2"></i> View Cart
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Product data
+      const products = {
+        vegetables: [
+          {
+            id: 1,
+            name: "Organic Grapes",
+            price: 4.99,
+            originalPrice: 6.99,
+            category: "vegetables",
+            image: "🍇",
+          },
+          {
+            id: 2,
+            name: "Fresh Carrots",
+            price: 1.49,
+            originalPrice: 1.99,
+            category: "vegetables",
+            image: "🥕",
+          },
+          {
+            id: 3,
+            name: "Organic Tomatoes",
+            price: 2.99,
+            originalPrice: 3.49,
+            category: "vegetables",
+            image: "🍅",
+          },
+          {
+            id: 4,
+            name: "Cucumbers",
+            price: 0.99,
+            originalPrice: 1.29,
+            category: "vegetables",
+            image: "🥒",
+          },
+          {
+            id: 5,
+            name: "Bell Peppers",
+            price: 1.79,
+            originalPrice: 2.19,
+            category: "vegetables",
+            image: "🫑",
+          },
+          {
+            id: 6,
+            name: "Organic Apples",
+            price: 3.49,
+            originalPrice: 3.99,
+            category: "vegetables",
+            image: "🍏",
+          },
+        ],
+        beverages: [
+          {
+            id: 7,
+            name: "Mineral Water",
+            price: 0.79,
+            originalPrice: 0.99,
+            category: "beverages",
+            image: "💧",
+          },
+          {
+            id: 8,
+            name: "Orange Juice",
+            price: 2.49,
+            originalPrice: 2.99,
+            category: "beverages",
+            image: "🧃",
+          },
+          {
+            id: 9,
+            name: "Craft Beer",
+            price: 3.99,
+            originalPrice: 4.5,
+            category: "beverages",
+            image: "🍺",
+          },
+          {
+            id: 10,
+            name: "Green Tea",
+            price: 3.29,
+            originalPrice: 3.99,
+            category: "beverages",
+            image: "🍵",
+          },
+          {
+            id: 11,
+            name: "Cola Drink",
+            price: 1.29,
+            originalPrice: 1.5,
+            category: "beverages",
+            image: "🥤",
+          },
+          {
+            id: 12,
+            name: "Sparkling Water",
+            price: 0.99,
+            originalPrice: 1.2,
+            category: "beverages",
+            image: "🧊",
+          },
+        ],
+        dairy: [
+          {
+            id: 13,
+            name: "Milk 1L",
+            price: 1.09,
+            originalPrice: 1.29,
+            category: "dairy",
+            image: "🥛",
+          },
+          {
+            id: 14,
+            name: "Cheddar Cheese",
+            price: 3.49,
+            originalPrice: 3.99,
+            category: "dairy",
+            image: "🧀",
+          },
+          {
+            id: 15,
+            name: "Greek Yogurt",
+            price: 2.19,
+            originalPrice: 2.49,
+            category: "dairy",
+            image: "🍶",
+          },
+          {
+            id: 16,
+            name: "Butter 250g",
+            price: 1.99,
+            originalPrice: 2.29,
+            category: "dairy",
+            image: "🧈",
+          },
+          {
+            id: 17,
+            name: "Organic Eggs",
+            price: 2.79,
+            originalPrice: 3.19,
+            category: "dairy",
+            image: "🥚",
+          },
+          {
+            id: 18,
+            name: "Cream Cheese",
+            price: 1.89,
+            originalPrice: 2.1,
+            category: "dairy",
+            image: "🧀",
+          },
+        ],
+        grains: [
+          {
+            id: 19,
+            name: "Edible Oil Ghee",
+            price: 45.0,
+            originalPrice: 60.0,
+            category: "grains",
+            image: "🫒",
+          },
+          {
+            id: 20,
+            name: "Dry Fruits",
+            price: 20.0,
+            originalPrice: 22.0,
+            category: "grains",
+            image: "🥜",
+          },
+          {
+            id: 21,
+            name: "Whole Wheat Flour",
+            price: 2.49,
+            originalPrice: 2.99,
+            category: "grains",
+            image: "🌾",
+          },
+          {
+            id: 22,
+            name: "Basmati Rice",
+            price: 4.99,
+            originalPrice: 5.49,
+            category: "grains",
+            image: "🍚",
+          },
+          {
+            id: 23,
+            name: "Organic Quinoa",
+            price: 5.99,
+            originalPrice: 6.5,
+            category: "grains",
+            image: "🌾",
+          },
+          {
+            id: 24,
+            name: "Whole Grain Pasta",
+            price: 2.19,
+            originalPrice: 2.49,
+            category: "grains",
+            image: "🍝",
+          },
+        ],
+        personal: [
+          {
+            id: 25,
+            name: "Shampoo",
+            price: 4.99,
+            originalPrice: 5.99,
+            category: "personal",
+            image: "🧴",
+          },
+          {
+            id: 26,
+            name: "Toothpaste",
+            price: 2.49,
+            originalPrice: 2.99,
+            category: "personal",
+            image: "🪥",
+          },
+          {
+            id: 27,
+            name: "Hand Soap",
+            price: 1.99,
+            originalPrice: 2.29,
+            category: "personal",
+            image: "🧼",
+          },
+          {
+            id: 28,
+            name: "Face Cream",
+            price: 8.99,
+            originalPrice: 9.99,
+            category: "personal",
+            image: "🧴",
+          },
+          {
+            id: 29,
+            name: "Razor Blades",
+            price: 5.49,
+            originalPrice: 6.0,
+            category: "personal",
+            image: "🪒",
+          },
+          {
+            id: 30,
+            name: "Deodorant",
+            price: 3.29,
+            originalPrice: 3.79,
+            category: "personal",
+            image: "🧴",
+          },
+        ],
+        pet: [
+          {
+            id: 31,
+            name: "Dog Food",
+            price: 12.99,
+            originalPrice: 14.99,
+            category: "pet",
+            image: "🐕",
+          },
+          {
+            id: 32,
+            name: "Cat Litter",
+            price: 8.49,
+            originalPrice: 9.99,
+            category: "pet",
+            image: "🐈",
+          },
+          {
+            id: 33,
+            name: "Pet Toy",
+            price: 5.99,
+            originalPrice: 6.5,
+            category: "pet",
+            image: "🎾",
+          },
+          {
+            id: 34,
+            name: "Fish Food",
+            price: 3.49,
+            originalPrice: 3.99,
+            category: "pet",
+            image: "🐠",
+          },
+          {
+            id: 35,
+            name: "Bird Seed",
+            price: 4.29,
+            originalPrice: 4.99,
+            category: "pet",
+            image: "🦜",
+          },
+          {
+            id: 36,
+            name: "Pet Shampoo",
+            price: 6.99,
+            originalPrice: 7.5,
+            category: "pet",
+            image: "🛁",
+          },
+        ],
+      };
+
+      // Cart functionality
+      const cart = [];
+      const cartToggle = document.getElementById("cart-toggle");
+      const mobileCartButton = document.getElementById("mobile-cart-button");
+      const cartClose = document.getElementById("cart-close");
+      const cartSidebar = document.getElementById("cart-sidebar");
+      const cartItemsContainer = document.getElementById("cart-items");
+      const cartCount = document.getElementById("cart-count");
+      const mobileCartCount = document.getElementById("mobile-cart-count");
+      const cartSubtotal = document.getElementById("cart-subtotal");
+      const cartTotal = document.getElementById("cart-total");
+      const productsContainer = document.getElementById("products-container");
+      const categoryTitle = document.getElementById("category-title");
+      const categoryItems = document.querySelectorAll(".category-item");
+      const mobileMenuButton = document.getElementById("mobile-menu-button");
+      const categorySidebar = document.getElementById("category-sidebar");
+      const sidebarOverlay = document.getElementById("sidebar-overlay");
+
+      // Initialize with featured products
+      displayProducts(Object.values(products).flat().slice(0, 12));
+
+      // Toggle cart visibility
+      cartToggle.addEventListener("click", openCart);
+      mobileCartButton.addEventListener("click", openCart);
+      cartClose.addEventListener("click", closeCart);
+
+      function openCart() {
+        cartSidebar.classList.remove("cart-hidden");
+        cartSidebar.classList.add("cart-visible");
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeCart() {
+        cartSidebar.classList.remove("cart-visible");
+        cartSidebar.classList.add("cart-hidden");
+        document.body.style.overflow = "auto";
+      }
+
+      // Mobile menu toggle
+      mobileMenuButton.addEventListener("click", () => {
+        categorySidebar.classList.toggle("sidebar-visible");
+        sidebarOverlay.style.display = categorySidebar.classList.contains(
+          "sidebar-visible"
+        )
+          ? "block"
+          : "none";
+      });
+
+      sidebarOverlay.addEventListener("click", () => {
+        categorySidebar.classList.remove("sidebar-visible");
+        sidebarOverlay.style.display = "none";
+      });
+
+      // Category selection
+      categoryItems.forEach((item) => {
+        item.addEventListener("click", function () {
+          const category = this.getAttribute("data-category");
+          displayCategoryProducts(category);
+
+          // Close mobile sidebar if open
+          categorySidebar.classList.remove("sidebar-visible");
+          sidebarOverlay.style.display = "none";
+        });
+      });
+
+      function displayCategoryProducts(category) {
+        const categoryProducts = products[category];
+        if (categoryProducts) {
+          displayProducts(categoryProducts);
+
+          // Update category title
+          const categoryName = document
+            .querySelector(`.category-item[data-category="${category}"]`)
+            .textContent.trim();
+          categoryTitle.textContent = categoryName;
+        }
+      }
+
+      function displayProducts(productsToDisplay) {
+        productsContainer.innerHTML = "";
+
+        productsToDisplay.forEach((product) => {
+          const productCard = document.createElement("div");
+          productCard.className =
+            "product-card bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-all";
+          productCard.innerHTML = `
+                    <div class="text-5xl mb-4 text-center">${
+                      product.image
+                    }</div>
+                    <h3 class="text-lg font-semibold mb-2 text-gray-800">${
+                      product.name
+                    }</h3>
+                    <div class="flex items-center mb-4">
+                        ${
+                          product.originalPrice
+                            ? `<span class="text-gray-500 line-through mr-2">£${product.originalPrice.toFixed(
+                                2
+                              )}</span>`
+                            : ""
+                        }
+                        <span class="text-green-600 font-bold text-xl">£${product.price.toFixed(
+                          2
+                        )}</span>
+                    </div>
+                    <button class="add-to-cart w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition-colors" 
+                            data-id="${product.id}" 
+                            data-name="${product.name}" 
+                            data-price="${product.price}">
+                        Add to Cart
+                    </button>
+                `;
+          productsContainer.appendChild(productCard);
+        });
+
+        // Add event listeners to new add-to-cart buttons
+        document.querySelectorAll(".add-to-cart").forEach((button) => {
+          button.addEventListener("click", function () {
+            const id = this.getAttribute("data-id");
+            const name = this.getAttribute("data-name");
+            const price = parseFloat(this.getAttribute("data-price"));
+
+            addToCart(id, name, price);
+          });
+        });
+      }
+
+      function addToCart(id, name, price) {
+        // Check if item already exists in cart
+        const existingItem = cart.find((item) => item.id === id);
+
+        if (existingItem) {
+          existingItem.quantity += 1;
+        } else {
+          cart.push({
+            id,
+            name,
+            price,
+            quantity: 1,
+          });
+        }
+
+        updateCart();
+        openCart();
+      }
+
+      // Update cart display
+      function updateCart() {
+        // Update cart count
+        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+        cartCount.textContent = totalItems;
+        mobileCartCount.textContent = totalItems;
+        totalItems > 0
+          ? cartCount.classList.remove("hidden")
+          : cartCount.classList.add("hidden");
+        totalItems > 0
+          ? mobileCartCount.classList.remove("hidden")
+          : mobileCartCount.classList.add("hidden");
+
+        // Update cart items
+        if (cart.length === 0) {
+          cartItemsContainer.innerHTML = `
+                    <div class="text-center py-12">
+                        <i class="fas fa-shopping-cart text-4xl text-gray-300 mb-4"></i>
+                        <p class="text-gray-500">Your cart is empty</p>
+                        <button class="mt-4 px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors" onclick="closeCart()">
+                            Continue Shopping
+                        </button>
+                    </div>
+                `;
+        } else {
+          let itemsHTML = "";
+          let subtotal = 0;
+
+          cart.forEach((item) => {
+            const itemTotal = item.price * item.quantity;
+            subtotal += itemTotal;
+
+            itemsHTML += `
+                        <div class="border-b pb-4 mb-4" data-id="${item.id}">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <h3 class="font-medium text-gray-800">${
+                                      item.name
+                                    }</h3>
+                                    <span class="text-green-600 font-semibold">£${item.price.toFixed(
+                                      2
+                                    )}</span>
+                                </div>
+                                <button class="remove-item text-gray-400 hover:text-red-500">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="flex justify-between items-center mt-3">
+                                <div class="flex items-center border rounded">
+                                    <button class="decrease-quantity px-3 py-1 text-gray-500 hover:bg-gray-100 rounded-l">
+                                        -
+                                    </button>
+                                    <span class="quantity px-4">${
+                                      item.quantity
+                                    }</span>
+                                    <button class="increase-quantity px-3 py-1 text-gray-500 hover:bg-gray-100 rounded-r">
+                                        +
+                                    </button>
+                                </div>
+                                <span class="font-semibold">£${itemTotal.toFixed(
+                                  2
+                                )}</span>
+                            </div>
+                        </div>
+                    `;
+          });
+
+          cartItemsContainer.innerHTML = itemsHTML;
+          cartSubtotal.textContent = `£${subtotal.toFixed(2)}`;
+          cartTotal.textContent = `£${subtotal.toFixed(2)}`;
+
+          // Add event listeners to dynamically created buttons
+          document.querySelectorAll(".remove-item").forEach((button) => {
+            button.addEventListener("click", function () {
+              const itemId = this.closest("[data-id]").getAttribute("data-id");
+              removeItemFromCart(itemId);
+            });
+          });
+
+          document.querySelectorAll(".increase-quantity").forEach((button) => {
+            button.addEventListener("click", function () {
+              const itemId = this.closest("[data-id]").getAttribute("data-id");
+              updateItemQuantity(itemId, 1);
+            });
+          });
+
+          document.querySelectorAll(".decrease-quantity").forEach((button) => {
+            button.addEventListener("click", function () {
+              const itemId = this.closest("[data-id]").getAttribute("data-id");
+              updateItemQuantity(itemId, -1);
+            });
+          });
+        }
+      }
+
+      // Remove item from cart
+      function removeItemFromCart(id) {
+        const index = cart.findIndex((item) => item.id === id);
+        if (index !== -1) {
+          cart.splice(index, 1);
+          updateCart();
+        }
+      }
+
+      // Update item quantity
+      function updateItemQuantity(id, change) {
+        const item = cart.find((item) => item.id === id);
+        if (item) {
+          item.quantity += change;
+
+          // Remove item if quantity reaches 0
+          if (item.quantity <= 0) {
+            removeItemFromCart(id);
+          } else {
+            updateCart();
+          }
+        }
+      }
+
+      // Make functions available globally for buttons in HTML
+      window.closeCart = closeCart;
+    </script>
+  </body>
+</html>

@@ -1,9 +1,14 @@
 import express from "express";
-import { getProducts, seedProducts } from "../controllers/productController.js";
+import {
+  getProducts,
+  getProductsByCategory,
+  getFeaturedProducts,
+} from "../controllers/productController.js";
 
 const router = express.Router();
 
 router.get("/", getProducts);
-router.post("/seed", seedProducts);
+router.get("/featured", getFeaturedProducts);
+router.get("/category/:categoryId", getProductsByCategory);
 
 export default router;

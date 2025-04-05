@@ -1,73 +1,26 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import { fetchProducts } from "../store/productsSlice";
 import ProductCard from "../components/ProductCard";
-import { motion } from "framer-motion";
+import { setCategory } from "../store/productsSlice";
 
-const Category = () => {
+export default function Category() {
+  const { categoryId } = useParams();
   const dispatch = useDispatch();
-  const { category } = useParams();
-  const {
-    items: products,
-    status,
-    error,
-  } = useSelector((state) => state.products);
+  const { products, currentCategory } = useSelector((state) => state.products);
 
   useEffect(() => {
-    dispatch(fetchProducts(category));
-  }, [category, dispatch]);
+    dispatch(setCategory(categoryId));
+  }, [categoryId, dispatch]);
 
-  let content;
-
-  if (status === "loading") {
-    content = (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
-      </div>
-    );
-  } else if (status === "succeeded") {
-    content = (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {products.map((product, index) => (
-          <motion.div
-            key={product._id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-          >
-            <ProductCard product={product} />
-          </motion.div>
-        ))}
-      </div>
-    );
-  } else if (status === "failed") {
-    content = (
-      <div className="text-center py-12 text-red-400">
-        <p>Error loading products: {error}</p>
-      </div>
-    );
-  }
-
-  // Format category name for display
-  const formatCategoryName = (cat) => {
-    if (!cat) return "";
-    return cat
-      .split("-")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
-  };
+  const categoryProducts = products.filter((p) => p.category === categoryId);
 
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
-        <motion.h2
-          initial={{ scale: 0.9 }}
-          animate={{ scale: 1 }}
-          className="text-2xl font-bold text-orange-400"
-        >
-          {formatCategoryName(category)}
-        </motion.h2>
+        <h2 className="text-2xl font-bold text-orange-400 capitalize">
+          {currentCategory}
+        </h2>
         <div className="relative">
           <select className="appearance-none bg-gray-700 border border-gray-600 rounded-md py-2 pl-3 pr-8 text-gray-300 leading-tight focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
             <option className="bg-gray-800">Sort by: Featured</option>
@@ -80,9 +33,19 @@ const Category = () => {
           </div>
         </div>
       </div>
-      {content}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {categoryProducts.length > 0 ? (
+          categoryProducts.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))
+        ) : (
+          <div className="col-span-full text-center py-12">
+            <i className="fas fa-box-open text-5xl text-gray-600 mb-4"></i>
+            <p className="text-gray-400">No products found in this category</p>
+          </div>
+        )}
+      </div>
     </div>
   );
-};
-
-export default Category;
+}

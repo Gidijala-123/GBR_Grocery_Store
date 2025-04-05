@@ -1,39 +1,24 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
-
-export const fetchProducts = createAsyncThunk(
-  "products/fetchProducts",
-  async (category = null) => {
-    const url = category
-      ? `/api/products?category=${category}`
-      : "/api/products";
-    const response = await axios.get(url);
-    return response.data;
-  }
-);
+import { createSlice } from "@reduxjs/toolkit";
 
 const productsSlice = createSlice({
   name: "products",
   initialState: {
-    items: [],
+    products: [],
+    featuredProducts: [],
+    currentCategory: null,
     status: "idle",
     error: null,
   },
-  reducers: {},
-  extraReducers: (builder) => {
-    builder
-      .addCase(fetchProducts.pending, (state) => {
-        state.status = "loading";
-      })
-      .addCase(fetchProducts.fulfilled, (state, action) => {
-        state.status = "succeeded";
-        state.items = action.payload;
-      })
-      .addCase(fetchProducts.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.error.message;
-      });
+  reducers: {
+    setProducts: (state, action) => {
+      state.products = action.payload;
+      state.featuredProducts = action.payload.slice(0, 12);
+    },
+    setCategory: (state, action) => {
+      state.currentCategory = action.payload;
+    },
   },
 });
 
+export const { setProducts, setCategory } = productsSlice.actions;
 export default productsSlice.reducer;
