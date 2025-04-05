@@ -1,16 +1,54 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-export const fetchCart = createAsyncThunk("cart/fetchCart", async () => {
-  const response = await axios.get("/api/cart");
-  return response.data.items || [];
+// Create authenticated axios instance
+const authAxios = axios.create({
+  baseURL: "/api",
 });
+
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  }
+);
+
+export const fetchCart = createAsyncThunk(
+  "cart/fetchCart",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.get("/api/cart");
+      return response.data.items || [];
+    } catch (error) {
+      if (error.response?.status === 401) {
+        return rejectWithValue("Please login to view your cart");
+      }
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to load cart"
+      );
+    }
+  }
+);
 
 export const addToCart = createAsyncThunk(
   "cart/addToCart",
-  async ({ productId, quantity = 1 }) => {
-    const response = await axios.post("/api/cart", { productId, quantity });
-    return response.data.items;
+  async ({ productId, quantity = 1 }, { rejectWithValue }) => {
+    try {
+      const response = await authAxios.post("/cart", { productId, quantity });
+      return response.data.items;
+    } catch (error) {
+      if (error.response?.status === 401) {
+        localStorage.removeItem("token");
+        return rejectWithValue("Session expired. Please login again");
+      }
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to add item"
+      );
+    }
   }
 );
 
@@ -37,7 +75,11 @@ const cartSlice = createSlice({
     status: "idle",
     error: null,
   },
-  reducers: {},
+  reducers: {
+    clearCart: (state) => {
+      state.items = [];
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchCart.pending, (state) => {
@@ -49,7 +91,7 @@ const cartSlice = createSlice({
       })
       .addCase(fetchCart.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.error.message;
+        state.error = action.payload;
       })
       .addCase(addToCart.fulfilled, (state, action) => {
         state.items = action.payload;

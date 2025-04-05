@@ -1,13 +1,13 @@
 import mongoose from "mongoose";
 
 const productSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  price: { type: Number, required: true },
+  id: Number,
+  name: String,
+  price: Number,
   originalPrice: Number,
-  category: { type: String, required: true },
-  image: String,
-  rating: { type: Number, default: 0 },
-  createdAt: { type: Date, default: Date.now },
+  category: String,
+  image: String, // Should match emoji format (e.g., "🍇")
+  rating: Number,
 });
 
 export default mongoose.model("Product", productSchema);

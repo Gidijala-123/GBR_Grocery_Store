@@ -6,7 +6,12 @@ import CategorySidebar from "../components/CategorySidebar";
 
 const Home = () => {
   const dispatch = useDispatch();
-  const { items: products, status } = useSelector((state) => state.products);
+  const {
+    items: products,
+    status: productsStatus,
+    error: productsError,
+  } = useSelector((state) => state.products);
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("Featured Products");
 
@@ -75,25 +80,59 @@ const Home = () => {
             </div>
           </div>
 
-          {status === "loading" ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
-            </div>
-          ) : status === "failed" ? (
-            <div className="text-center py-12 text-red-500">
-              Failed to load products. Please try again.
-            </div>
+          {productsStatus === "loading" ? (
+            <LoadingSpinner />
+          ) : productsStatus === "failed" ? (
+            <ErrorDisplay error={productsError} />
+          ) : products.length === 0 ? (
+            <EmptyState category={selectedCategory} />
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {products.map((product) => (
-                <ProductCard key={product._id} product={product} />
-              ))}
-            </div>
+            <ProductGrid products={products} />
           )}
         </div>
       </div>
     </div>
   );
 };
+
+// New component for loading state
+const LoadingSpinner = () => (
+  <div className="flex justify-center items-center h-64">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+  </div>
+);
+
+// New component for error state
+const ErrorDisplay = ({ error }) => (
+  <div className="text-center py-12 text-red-500">
+    {error || "Failed to load products. Please try again."}
+    <button
+      onClick={() => window.location.reload()}
+      className="mt-4 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+    >
+      Retry
+    </button>
+  </div>
+);
+
+// New component for empty state
+const EmptyState = ({ category }) => (
+  <div className="text-center py-12">
+    <i className="fas fa-box-open text-4xl text-gray-400 mb-4"></i>
+    <p className="text-gray-500">
+      No products found{" "}
+      {category !== "Featured Products" ? `in ${category}` : ""}
+    </p>
+  </div>
+);
+
+// New component for product grid
+const ProductGrid = ({ products }) => (
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    {products.map((product) => (
+      <ProductCard key={product._id} product={product} />
+    ))}
+  </div>
+);
 
 export default Home;

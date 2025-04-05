@@ -1,5 +1,9 @@
+// BACK-END/routes/productRoutes.js
 import express from "express";
-import { getProducts, getProductsByCategory } from "../controllers/productController.js";
+import {
+  getProducts,
+  getProductsByCategory,
+} from "../controllers/productController.js";
 
 const router = express.Router();
 
