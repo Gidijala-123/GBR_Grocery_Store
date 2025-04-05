@@ -1,22 +1,14 @@
 import express from "express";
-import {
-  getCart,
-  addToCart,
-  removeFromCart,
-  updateCartItem,
-  clearCart,
-} from "../controllers/cartController.js";
-import authMiddleware from "../middleware/authMiddleware.js";
+import * as cartController from "../controllers/cartController.js";
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// Apply auth middleware to all cart routes
-router.use(authMiddleware);
+router.use(protect);
 
-router.get("/", getCart);
-router.post("/", addToCart);
-router.delete("/:productId", removeFromCart);
-router.put("/:productId", updateCartItem);
-router.delete("/", clearCart);
+router.get("/", cartController.getCart);
+router.post("/", cartController.addToCart);
+router.put("/:itemId", cartController.updateCartItem);
+router.delete("/:itemId", cartController.removeFromCart);
 
 export default router;

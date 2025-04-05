@@ -1,17 +1,47 @@
-import { Routes, Route } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Provider } from "react-redux";
+import { store } from "./store";
+import { fetchCart } from "./store/cartSlice";
+import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
-import Category from "./pages/Category";
-import Layout from "./components/Layout";
+import CartSidebar from "./components/CartSidebar";
+import { useDispatch } from "react-redux";
 
-function App() {
+const AppWrapper = () => {
   return (
-    <Routes>
-      <Route path="/" element={<Layout />}>
-        <Route index element={<Home />} />
-        <Route path="category/:categoryId" element={<Category />} />
-      </Route>
-    </Routes>
+    <Provider store={store}>
+      <App />
+    </Provider>
   );
-}
+};
 
-export default App;
+const App = () => {
+  const dispatch = useDispatch();
+  const [cartOpen, setCartOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    dispatch(fetchCart());
+  }, [dispatch]);
+
+  const toggleCart = () => {
+    setCartOpen(!cartOpen);
+  };
+
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  return (
+    <div className="relative">
+      <Navbar toggleCart={toggleCart} toggleMobileMenu={toggleMobileMenu} />
+      <Home
+        mobileMenuOpen={mobileMenuOpen}
+        toggleMobileMenu={toggleMobileMenu}
+      />
+      <CartSidebar isOpen={cartOpen} onClose={() => setCartOpen(false)} />
+    </div>
+  );
+};
+
+export default AppWrapper;

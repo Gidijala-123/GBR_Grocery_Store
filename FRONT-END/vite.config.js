@@ -1,9 +1,10 @@
 import { defineConfig } from "vite";
-import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "tailwindcss";
+import autoprefixer from "autoprefixer";
 
 export default defineConfig({
-  plugins: [tailwindcss(), react()],
+  plugins: [react()],
   server: {
     port: 1111,
     proxy: {
@@ -14,8 +15,13 @@ export default defineConfig({
       },
     },
   },
+  css: {
+    postcss: {
+      plugins: [tailwindcss, autoprefixer],
+    },
+  },
   build: {
-    outDir: "../server/public", // Build output to server/public for deployment
+    outDir: "../server/public",
     emptyOutDir: true,
   },
 });
